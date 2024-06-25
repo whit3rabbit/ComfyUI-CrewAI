@@ -23,9 +23,16 @@ Inspired by [ComfyUI](https://github.com/comfyanonymous/ComfyUI) and [CrewAI](ht
 1. Install [ComfyUI](https://github.com/comfyanonymous/ComfyUI) by following the instructions on their GitHub page
 2. Clone this repository to custom_nodes folder
 3. Install requirements by running
+
 `pip install -r requirements.txt`
+
 or if you use portable (run this in ComfyUI_windows_portable -folder):
+
 `python_embeded\python.exe -m pip install -r ComfyUI\custom_nodes\ComfyUI-CrewAI\requirements.txt`
+
+For showing text you will need this addon as well:
+
+https://github.com/pythongosssss/ComfyUI-Custom-Scripts
 
 ### Future work
 1. Add more tools to the list
