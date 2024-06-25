@@ -1,3 +1,4 @@
 crewai[tools]
 langchain_openai
 langchain_community
+anthropic

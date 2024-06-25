@@ -1,4 +1,4 @@
-from crewai import Crew,Agent,Task, Process
+from crewai import Crew, Agent, Task, Process
 from crewai_tools import (
     ScrapeWebsiteTool, 
     SerperDevTool, 
@@ -7,9 +7,10 @@ from crewai_tools import (
     MDXSearchTool,
     CSVSearchTool,
     DirectoryReadTool
-    )
+)
 import os
 from langchain_openai import ChatOpenAI
+from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
 
 os.environ["SERPER_API_KEY"] = "your key here"
 os.environ["OPENAI_BASE_URL"]="https://api.groq.com/openai/v1"
@@ -203,11 +204,13 @@ class LLMNode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "base_url": ("STRING", {"default": "https://api.deepseek.com"}),
+                "provider": (["OpenAI", "Claude"],),
                 "api_key": ("STRING", {"default": "your key here"}),
              },
             "optional":{
-                "model": ("STRING", {"default": "deepseek-chat"}),
+                "base_url": ("STRING", {"default": "https://api.openai.com/v1"}),
+                "openai_model": (["gpt-4", "gpt-3.5-turbo"], {"default": "gpt-3.5-turbo"}),
+                "claude_model": (["claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"], {"default": "claude-3-opus-20240229"}),
             }
         }
  
@@ -220,8 +223,16 @@ class LLMNode:
  
     CATEGORY = "Crewai"
  
-    def set_llm(self,base_url,api_key,model):
-        llm = ChatOpenAI(base_url=base_url,api_key=api_key,model=model)
+    def set_llm(self, provider, api_key, base_url=None, openai_model=None, claude_model=None):
+        if provider == "OpenAI":
+            llm = ChatOpenAI(base_url=base_url, api_key=api_key, model=openai_model)
+        elif provider == "Claude":
+            anthropic = Anthropic(api_key=api_key)
+            llm = anthropic.completions.create(
+                model=claude_model,
+                max_tokens_to_sample=1000,
+                prompt=f"{HUMAN_PROMPT} Hello, Claude! {AI_PROMPT}"
+            )
         return (llm,)
 
 class AgentListNode:
