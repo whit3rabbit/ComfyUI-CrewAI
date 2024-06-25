@@ -1,3 +1,5 @@
+import os
+from typing import Any, List, Mapping, Optional
 from crewai import Crew, Agent, Task, Process
 from crewai_tools import (
     ScrapeWebsiteTool, 
@@ -8,9 +10,10 @@ from crewai_tools import (
     CSVSearchTool,
     DirectoryReadTool
 )
-import os
 from langchain_openai import ChatOpenAI
 from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
+from langchain.llms.base import LLM
+from langchain.callbacks.manager import CallbackManagerForLLMRun
 
 os.environ["SERPER_API_KEY"] = "your key here"
 os.environ["OPENAI_BASE_URL"]="https://api.groq.com/openai/v1"
@@ -195,45 +198,77 @@ class TaskNode:
             )
 
         return (task,)
+
+class ClaudeLLM(LLM):
+    client: Anthropic
+    model: str
+    max_tokens: int
+    temperature: float
+
+    def __init__(self, api_key: str, model: str, max_tokens: int = 1000, temperature: float = 0.7):
+        super().__init__()
+        self.client = Anthropic(api_key=api_key)
+        self.model = model
+        self.max_tokens = max_tokens
+        self.temperature = temperature
+
+    def _call(
+        self, 
+        prompt: str, 
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+    ) -> str:
+        response = self.client.completions.create(
+            model=self.model,
+            prompt=f"{HUMAN_PROMPT} {prompt} {AI_PROMPT}",
+            max_tokens_to_sample=self.max_tokens,
+            temperature=self.temperature,
+            stop_sequences=stop or []
+        )
+        return response.completion
+
+    @property
+    def _llm_type(self) -> str:
+        return "claude"
+
+    @property
+    def _identifying_params(self) -> Mapping[str, Any]:
+        """Get the identifying parameters."""
+        return {"model": self.model, "max_tokens": self.max_tokens, "temperature": self.temperature}
     
 class LLMNode:
-    def __init__(self):
-        pass
-    
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(cls):
         return {
             "required": {
                 "provider": (["OpenAI", "Claude"],),
-                "api_key": ("STRING", {"default": "your key here"}),
+                "api_key": ("STRING", {"default": ""}),
              },
-            "optional":{
+            "optional": {
                 "base_url": ("STRING", {"default": "https://api.openai.com/v1"}),
                 "openai_model": (["gpt-4", "gpt-3.5-turbo"], {"default": "gpt-3.5-turbo"}),
                 "claude_model": (["claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"], {"default": "claude-3-opus-20240229"}),
+                "max_tokens": ("INT", {"default": 1000, "min": 1, "max": 100000}),
+                "temperature": ("FLOAT", {"default": 0.7, "min": 0.0, "max": 1.0, "step": 0.1}),
             }
         }
  
     RETURN_TYPES = ("LLM",)
     RETURN_NAMES = ()
- 
     FUNCTION = "set_llm"
- 
     OUTPUT_NODE = True
- 
     CATEGORY = "Crewai"
  
-    def set_llm(self, provider, api_key, base_url=None, openai_model=None, claude_model=None):
+    def set_llm(self, provider, api_key, base_url=None, openai_model=None, claude_model=None, max_tokens=1000, temperature=0.7):
+        if not api_key:
+            raise ValueError("API key is required")
+
         if provider == "OpenAI":
-            llm = ChatOpenAI(base_url=base_url, api_key=api_key, model=openai_model)
+            return (ChatOpenAI(base_url=base_url, api_key=api_key, model=openai_model, max_tokens=max_tokens, temperature=temperature),)
         elif provider == "Claude":
-            anthropic = Anthropic(api_key=api_key)
-            llm = anthropic.completions.create(
-                model=claude_model,
-                max_tokens_to_sample=1000,
-                prompt=f"{HUMAN_PROMPT} Hello, Claude! {AI_PROMPT}"
-            )
-        return (llm,)
+            return (ClaudeLLM(api_key=api_key, model=claude_model, max_tokens=max_tokens, temperature=temperature),)
+        else:
+            raise ValueError(f"Unsupported provider: {provider}")
 
 class AgentListNode:
     def __init__(self):
