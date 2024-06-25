@@ -355,6 +355,12 @@ class ToolsListNode:
         return ([tool for tool in [tool_01, tool_02, tool_03, tool_04] if tool is not None],)
 
 class SWTNode:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {},
+            "optional": {}
+        }
     RETURN_TYPES = ("TOOL",)
     RETURN_NAMES = ()
     FUNCTION = "set_swt"
@@ -365,6 +371,12 @@ class SWTNode:
         return (ScrapeWebsiteTool(),)
 
 class SDTNode:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {},
+            "optional": {}
+        }
     RETURN_TYPES = ("TOOL",)
     RETURN_NAMES = ()
     FUNCTION = "set_sdt"
