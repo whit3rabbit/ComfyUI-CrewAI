@@ -85,6 +85,41 @@ Max RPM: {kwargs.get('max_rpm', 25)}
 
         return (formatted_result,)
  
+class ClaudeLLM(LLM):
+    client: Anthropic
+    model: str
+    max_tokens: int
+    temperature: float
+
+    def __init__(self, api_key: str, model: str, max_tokens: int = 1000, temperature: float = 0.7):
+        super().__init__()
+        self.client = Anthropic(api_key=api_key)
+        self.model = model
+        self.max_tokens = max_tokens
+        self.temperature = temperature
+
+    def _call(
+        self, 
+        prompt: str, 
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+    ) -> str:
+        response = self.client.completions.create(
+            model=self.model,
+            prompt=f"{HUMAN_PROMPT} {prompt} {AI_PROMPT}",
+            max_tokens_to_sample=self.max_tokens,
+            temperature=self.temperature,
+            stop_sequences=stop or []
+        )
+        return response.completion
+
+    @property
+    def _llm_type(self) -> str:
+        return "claude"
+
+    @property
+    def _identifying_params(self) -> Mapping[str, Any]:
+        return {"model": self.model, "max_tokens": self.max_tokens, "temperature": self.temperature}
 class AgentNode:
     def __init__(self):
         pass
