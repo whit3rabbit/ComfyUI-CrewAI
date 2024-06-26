@@ -31,6 +31,7 @@ from langchain_openai import ChatOpenAI
 from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
 from langchain.llms.base import LLM
 from langchain.callbacks.manager import CallbackManagerForLLMRun
+
 class CrewNode:
     def __init__(self):
         pass
@@ -362,36 +363,32 @@ class SWTNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
-            "optional": {}
+            "required": {
+                "website_url": ("STRING", {"default": ""}),
+            },
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_swt"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
  
-    def set_swt(self):
-        return (ScrapeWebsiteTool(),)
+    def set_swt(self, website_url):
+        return (ScrapeWebsiteTool(website_url=website_url),)
 
 class SDTNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
-            "optional": {
+            "required": {
                 "api_key": ("STRING", {"default": os.getenv("SERPER_API_KEY", "")}),
+            },
+            "optional": {
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_sdt"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
  
     def set_sdt(self, api_key=""):
-        if not api_key:
-            raise ValueError("Serper API key is required. Please provide it or set the SERPER_API_KEY environment variable.")
         return (SerperDevTool(api_key=api_key),)
 
 class MDXSTNode:
@@ -399,36 +396,35 @@ class MDXSTNode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "file_path": ("STRING", {"default": "/file_path"}),                
+                "mdx": ("STRING", {"default": "path/to/your/document.mdx"}),
             },
+            "optional": {
+            }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_mdxst"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
-    def set_mdxst(self, file_path):
-        return (MDXSearchTool(mdx=file_path),)
-    
+    def set_mdxst(self, mdx=""):
+        return (MDXSearchTool(mdx=mdx),)
+
 class FRTNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
-                "file_path": ("STRING", {"default": "/file_path"}),                
+                "file_path": ("STRING", {"default": "path/to/your/file.txt"}),
+            },
+            "optional": {
+             
             },
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_frt"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
-    def set_frt(self, file_path):
+    def set_frt(self, file_path=""):
         return (FileReadTool(file_path=file_path),)
-
-# New tool nodes
 
 class PDFSearchToolNode:
     @classmethod
@@ -436,13 +432,11 @@ class PDFSearchToolNode:
         return {
             "required": {},
             "optional": {
-                "pdf": ("STRING", {"default": ""}),
+                "pdf": ("STRING", {"default": "path/to/your/document.pdf"}),
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_pdf_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_pdf_search_tool(self, pdf=""):
@@ -452,15 +446,14 @@ class CSVSearchToolNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
+            "required": {
+                "csv": ("STRING", {"default": "path/to/your/csvfile.csv"}),
+            },
             "optional": {
-                "csv": ("STRING", {"default": ""}),
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_csv_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_csv_search_tool(self, csv=""):
@@ -475,9 +468,7 @@ class DirectoryReadToolNode:
             },
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_directory_read_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_directory_read_tool(self, directory):
@@ -487,16 +478,15 @@ class BrowserbaseLoadToolNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
-            "optional": {
+            "required": {
                 "api_key": ("STRING", {"default": os.getenv("BROWSERBASE_API_KEY", "")}),
-                "text_content": ("BOOLEAN", {"default": False}),
+                "text_content": ("BOOLEAN", {"default": False}),                
+            },
+            "optional": {
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_browserbase_load_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_browserbase_load_tool(self, api_key="", text_content=False):
@@ -506,15 +496,14 @@ class CodeDocsSearchToolNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
+            "required": {
+                "docs_url": ("STRING", {"default": "https://docs.example.com/reference"}),
+            },
             "optional": {
-                "docs_url": ("STRING", {"default": ""}),
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_code_docs_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_code_docs_search_tool(self, docs_url=""):
@@ -524,15 +513,14 @@ class DirectorySearchToolNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
+            "required": {
+                "directory": ("STRING", {"default": "/path/to/directory"}),
+            },
             "optional": {
-                "directory": ("STRING", {"default": ""}),
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_directory_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_directory_search_tool(self, directory=""):
@@ -542,15 +530,14 @@ class DOCXSearchToolNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
-            "optional": {
+            "required": {
                 "docx": ("STRING", {"default": ""}),
+            },
+            "optional": {
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_docx_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_docx_search_tool(self, docx=""):
@@ -560,13 +547,11 @@ class EXASearchToolNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
+            "required": {}, # Requires EXA_API_KEY
             "optional": {}
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_exa_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_exa_search_tool(self):
@@ -578,16 +563,14 @@ class GithubSearchToolNode:
         return {
             "required": {
                 "gh_token": ("STRING", {"default": ""}),
-            },
-            "optional": {
                 "github_repo": ("STRING", {"default": ""}),
                 "content_types": ("STRING", {"default": "code,repo,pr,issue"}),
+            },
+            "optional": {
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_github_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_github_search_tool(self, gh_token, github_repo="", content_types="code,repo,pr,issue"):
@@ -598,15 +581,14 @@ class JSONSearchToolNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
+            "required": {
+                "json_path": ("STRING", {"default": ""}),                
+            },
             "optional": {
-                "json_path": ("STRING", {"default": ""}),
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_json_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_json_search_tool(self, json_path=""):
@@ -622,9 +604,7 @@ class PGSearchToolNode:
             },
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_pg_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_pg_search_tool(self, db_uri, table_name):
@@ -634,15 +614,14 @@ class RagToolNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
-            "optional": {
+            "required": {
                 "summarize": ("BOOLEAN", {"default": False}),
+            },
+            "optional": {
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_rag_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_rag_tool(self, summarize=False):
@@ -652,53 +631,51 @@ class ScrapeElementFromWebsiteToolNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
-            "optional": {
+            "required": {
                 "website_url": ("STRING", {"default": ""}),
                 "css_element": ("STRING", {"default": ""}),
-            }
+            },
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_scrape_element_from_website_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
-    def set_scrape_element_from_website_tool(self, website_url="", css_element=""):
+    def set_scrape_element_from_website_tool(self, website_url, css_element):
         return (ScrapeElementFromWebsiteTool(website_url=website_url, css_element=css_element),)
 
 class SeleniumScrapingToolNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
-            "optional": {
+            "required": {
                 "website_url": ("STRING", {"default": ""}),
                 "css_element": ("STRING", {"default": ""}),
+            },
+            "optional": {
+                "cookie_name": ("STRING", {"default": ""}),
+                "cookie_value": ("STRING", {"default": ""}),
+                "wait_time": ("INT", {"default": 3}),
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_selenium_scraping_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
-    def set_selenium_scraping_tool(self, website_url="", css_element=""):
-        return (SeleniumScrapingTool(website_url=website_url, css_element=css_element),)
+    def set_selenium_scraping_tool(self, website_url="", css_element="", cookie_name="", cookie_value="", wait_time=3):
+        cookie = {"name": cookie_name, "value": cookie_value} if cookie_name and cookie_value else None
+        return (SeleniumScrapingTool(website_url=website_url, css_element=css_element, cookie=cookie, wait_time=wait_time),)
 
 class WebsiteSearchToolNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
-            "optional": {
-                "website": ("STRING", {"default": ""}),
-            }
+            "required": {
+                "website": ("STRING", {"default": ""}),         
+            },
+            "optional": {}
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_website_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_website_search_tool(self, website=""):
@@ -714,9 +691,7 @@ class XMLSearchToolNode:
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_xml_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_xml_search_tool(self, xml=""):
@@ -732,9 +707,7 @@ class YoutubeChannelSearchToolNode:
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_youtube_channel_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_youtube_channel_search_tool(self, youtube_channel_handle=""):
@@ -750,9 +723,7 @@ class YoutubeVideoSearchToolNode:
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_youtube_video_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_youtube_video_search_tool(self, youtube_video_url=""):
@@ -768,9 +739,7 @@ class TXTSearchToolNode:
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_txt_search_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_txt_search_tool(self, txt=""):
@@ -789,19 +758,14 @@ class LlamaIndexToolNode:
             }
         }
     RETURN_TYPES = ("TOOL",)
-    RETURN_NAMES = ()
     FUNCTION = "set_llama_index_tool"
-    OUTPUT_NODE = True
     CATEGORY = "Crewai/tools"
 
     def set_llama_index_tool(self, tool_type, name="", description=""):
-        # Note: This is a simplified implementation. You may need to adjust it based on how you want to use LlamaIndexTool in your ComfyUI setup.
         if tool_type == "from_tool":
             return (LlamaIndexTool.from_tool(name=name, description=description),)
         elif tool_type == "from_query_engine":
             return (LlamaIndexTool.from_query_engine(name=name, description=description),)
-
-# Update NODE_CLASS_MAPPINGS and NODE_DISPLAY_NAME_MAPPINGS
 
 NODE_CLASS_MAPPINGS = {
     "Crew": CrewNode,
